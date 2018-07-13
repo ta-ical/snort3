@@ -1,4 +1,3 @@
-
 set (SEARCH_ENGINE_INCLUDES
     search_common.h
     search_tool.h
@@ -42,6 +41,18 @@ if ( HAVE_HYPERSCAN )
     )
 endif ()
 
+set (PFAC_SOURCES
+    pfac_api.cc
+    pfac/pfac.cu
+    pfac/pfac.h
+    pfac/pfac_match.cu
+    pfac/pfac_match.cuh
+    pfac/pfac_table.cu
+    pfac/pfac_table.h
+    pfac/pfac_kernel.cu
+    pfac/cuda_utils.h
+)
+
 set (SEARCH_ENGINE_SOURCES
     pat_stats.h
     search_engines.cc
@@ -55,6 +66,7 @@ if ( STATIC_SEARCH_ENGINES )
     add_library(search_engines STATIC
         ${ACSMX_SOURCES}
         ${ACSMX2_SOURCES}
+        ${PFAC_SOURCES}
         ${INTEL_SOURCES}
         ${SEARCH_ENGINE_SOURCES}
         ${SEARCH_ENGINE_INCLUDES}
@@ -71,6 +83,8 @@ else ( STATIC_SEARCH_ENGINES)
 
 endif (STATIC_SEARCH_ENGINES)
 
+
+set_property(TARGET search_engines PROPERTY CUDA_STANDARD 11)
 
 install(FILES ${SEARCH_ENGINE_INCLUDES}
     DESTINATION "${INCLUDE_INSTALL_PATH}/search_engines"

@@ -66,11 +66,13 @@ add_executable( snort
     main.cc
 )
 
+set (LIB_MANAGERS -Wl,-E managers)
+
 # order libs to avoid undefined symbols
 # from gnu linker
 target_link_libraries( snort
     ${UNIT_TESTS_LIBRARIES}
-    managers
+    ${LIB_MANAGERS}
     main
     codecs
     loggers
