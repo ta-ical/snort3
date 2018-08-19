@@ -295,6 +295,9 @@ struct PFAC_STRUCT {
 struct patternEle{
     char *patternString;
     int patternID;
+    int patternLen;
+    patternEle(char *P, int ID, int len):
+        patternString(P), patternID(ID), patternLen(len) {}
 };
 
 
@@ -364,7 +367,7 @@ static void pfac_init_xlatcase ()
     int i;
     for (i = 0; i < 256; i++)
     {
-        pfac_xlatcase[i] = (unsigned char)toupper (i);
+        pfac_xlatcase[i] = (uint8_t)toupper (i);
     }
 }
 

@@ -461,15 +461,15 @@ __global__ void PFAC_kernel_timeDriven(int *d_PFAC_table, int *d_input_string, i
     if ( gbid < num_blocks_minus1 ){
         #pragma unroll
         for (int j = 0 ; j < 4 ; j++ ){
-            PFAC_PRINTF("Match at %d: %d\n", start, match[j]);
+            // PFAC_PRINTF("Match at %d: %d\n", start, match[j]);
             d_match_result[start] = match[j];
             start += BLOCKSIZE ;
         }
     }else{
         int j = 0 ;
         MANUAL_EXPAND_4( if (start>=input_size) return ; d_match_result[start] = match[j]; \
-            PFAC_PRINTF("Match at %d: %d\n", start, match[j]); \
-            j++ ; start += BLOCKSIZE ; )
+        j++ ; start += BLOCKSIZE ; )
+            // PFAC_PRINTF("Match at %d: %d\n", start, match[j]);
     }
 }
 

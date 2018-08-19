@@ -36,6 +36,7 @@ extern const BaseApi* se_hyperscan[];
 #endif
 
 #ifdef STATIC_SEARCH_ENGINES
+extern const BaseApi* se_pfac[];
 extern const BaseApi* se_ac_std[];
 extern const BaseApi* se_acsmx2[];
 #endif
@@ -53,6 +54,7 @@ void load_search_engines()
 #endif
 
 #ifdef STATIC_SEARCH_ENGINES
+    PluginManager::load_plugins(se_pfac);
     PluginManager::load_plugins(se_ac_std);
     PluginManager::load_plugins(se_acsmx2);
 #endif

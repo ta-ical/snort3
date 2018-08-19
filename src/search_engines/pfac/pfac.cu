@@ -167,7 +167,7 @@ PFAC_STRUCT * pfacNew (const MpseAgent* agent)
 {
     cudaProfilerStart();
 
-    PFAC_handle_t handle = (PFAC_handle_t) malloc( sizeof(PFAC_STRUCT) ) ;
+    PFAC_handle_t handle = (PFAC_handle_t) calloc( 1, sizeof(PFAC_STRUCT) ) ;
     if ( handle == NULL ){
         PFAC_PRINTF("Error: cannot initialize handler, error = %s\n", PFAC_getErrorString(PFAC_STATUS_ALLOC_FAILED));
         return NULL;
@@ -181,10 +181,13 @@ PFAC_STRUCT * pfacNew (const MpseAgent* agent)
         PFAC_PRINTF("Error: cannot initialize handler, error = %s\n", PFAC_getErrorString(status));
         return NULL;
     }
-
-    handle->userfree              = agent->user_free;
-    handle->optiontreefree        = agent->tree_free;
-    handle->neg_list_free         = agent->list_free;
+    
+    if (agent != NULL) 
+    {
+        handle->userfree              = agent->user_free;
+        handle->optiontreefree        = agent->tree_free;
+        handle->neg_list_free         = agent->list_free;
+    }
 
     return (PFAC_STRUCT *) handle;
 }
@@ -209,9 +212,9 @@ int pfacAddPattern (
 {
     PFAC_PATTERN * plist;
     plist = (PFAC_PATTERN *) calloc (1, sizeof (PFAC_PATTERN));
-    plist->patrn = (unsigned char *) calloc (1, n);
+    plist->patrn = (uint8_t *) calloc (n, 1);
     ConvertCaseEx (plist->patrn, pat, n);
-    plist->casepatrn = (unsigned char *) calloc (1, n);
+    plist->casepatrn = (uint8_t *) calloc (n, 1);
     memcpy (plist->casepatrn, pat, n);
 
     plist->udata = (PFAC_USERDATA*)user;
@@ -232,22 +235,12 @@ int pfacAddPattern (
 
 int pfacCompile ( SnortConfig * config, PFAC_STRUCT * pfac )
 {
-    int max_numOfStates = pfac->max_numOfStates;
+    int max_numOfStates = ++pfac->max_numOfStates;
 
     // Allocate a buffer to contains all patterns
-    pfac->valPtr = (char*)malloc(sizeof(char)*max_numOfStates);
+    pfac->valPtr = (char*)calloc(max_numOfStates, sizeof( char ));
     if (NULL == pfac->valPtr) {
         return PFAC_STATUS_ALLOC_FAILED;
-    }
-
-    /* Copy all patterns into the buffer */
-    PFAC_PATTERN *plist;
-    char *offset;
-    for (plist = pfac->pfacPatterns, offset = pfac->valPtr + 1;
-         plist != NULL; 
-         offset += plist->n + 1, plist = plist->next)
-    {
-        memcpy(offset, plist->patrn, plist->n);
     }
 
     PFAC_status_t status = PFAC_fillPatternTable((PFAC_handle_t) pfac);
@@ -264,6 +257,8 @@ int pfacCompile ( SnortConfig * config, PFAC_STRUCT * pfac )
         return 0;
     }
 
+    PFAC_dumpTransitionTable((PFAC_handle_t) pfac, stdout);
+
     return 0;
 }
 
@@ -274,8 +269,8 @@ int pfacSearch (
     //     int (*Match)(void * id, void *tree, int index, void *data, void *neg_list),
     //     void * data, int* current_state )
 {
-    int *h_matched_result = (int *) malloc ( n * sizeof(int) );
-    int *h_num_matched = (int *) malloc ( THREAD_BLOCK_SIZE * sizeof(int) );
+    int *h_matched_result = (int *) calloc ( n, sizeof(int) );
+    int *h_num_matched = (int *) calloc ( THREAD_BLOCK_SIZE, sizeof(int) );
     int nfound = 0;
     PFAC_handle_t handle = (PFAC_handle_t) pfac;
 
@@ -286,11 +281,13 @@ int pfacSearch (
         return 0;
     }
 
-    #pragma omp parallel for reduction (+:nfound)
-    for (int i = 0; i < THREAD_BLOCK_SIZE; ++i)
-    {
-        nfound += h_num_matched[i];
-    }
+    puts("Matched");
+
+    // #pragma omp parallel for reduction (+:nfound)
+    // for (int i = 0; i < THREAD_BLOCK_SIZE; ++i)
+    // {
+    //     nfound += h_num_matched[i];
+    // }
 
     return nfound;
 }
