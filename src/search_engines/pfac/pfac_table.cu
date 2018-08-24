@@ -95,20 +95,18 @@ PFAC_status_t PFAC_fillPatternTable ( PFAC_handle_t handle )
     /* Copy all patterns into the buffer */
     PFAC_PATTERN *plist;
     char *offset;
-    int id;
-    for (plist = handle->pfacPatterns, offset = buffer, id = 1;
+    for (plist = handle->pfacPatterns, offset = buffer;
          plist != NULL; 
-         offset += plist->n + 1, plist = plist->next, id++)
+         offset += plist->n + 1, plist = plist->next)
     {
         memcpy(offset, plist->casepatrn, plist->n);
-        rowIdxArray.push_back(patternEle (offset, id, plist->n));
+        rowIdxArray.push_back(patternEle (offset, 0, plist->n));
     }
 
     // sort patterns by lexicographic order
     std::sort(rowIdxArray.begin(), rowIdxArray.end(), pattern_cmp_functor());
 
-    int rowIdxArraySize = id - 1;
-    assert(rowIdxArraySize == rowIdxArray.size());
+    int rowIdxArraySize = rowIdxArray.size();
     handle->rowPtr = (char**)malloc(sizeof(char*) * rowIdxArraySize);
     handle->patternID_table = (int*)malloc(sizeof(int) * rowIdxArraySize);
     handle->patternLen_table = (int*)malloc(sizeof(int) * (rowIdxArraySize + 1));
@@ -122,7 +120,7 @@ PFAC_status_t PFAC_fillPatternTable ( PFAC_handle_t handle )
     // Compute f(final state) = patternID
     for (int i = 0; i < rowIdxArray.size(); i++) {
         handle->rowPtr[i] = rowIdxArray[i].patternString;
-        handle->patternID_table[i] = rowIdxArray[i].patternID; // pattern number starts from 1
+        handle->patternID_table[i] = i + 1; // pattern number starts from 1
         
         // pattern ID starts from 1, so patternID = i+1
         handle->patternLen_table[i + 1] = rowIdxArray[i].patternLen;

@@ -249,11 +249,11 @@ __host__  PFAC_status_t  PFAC_kernel_timeDriven_wrapper(
         return PFAC_STATUS_INTERNAL_ERROR ;
     }
 
-    PFAC_kernel_count<THREAD_BLOCK_SIZE> <<< dimGrid, dimBlock >>> ( input_size, d_matched_result, d_num_matched );
-    cuda_status = cudaGetLastError() ;
-    if ( cudaSuccess != cuda_status ){
-        return PFAC_STATUS_INTERNAL_ERROR ;
-    }
+    // PFAC_kernel_count<THREAD_BLOCK_SIZE> <<< dimGrid, dimBlock >>> ( input_size, d_matched_result, d_num_matched );
+    // cuda_status = cudaGetLastError() ;
+    // if ( cudaSuccess != cuda_status ){
+    //     return PFAC_STATUS_INTERNAL_ERROR ;
+    // }
 
     return PFAC_STATUS_SUCCESS ;
 }
@@ -294,6 +294,7 @@ __host__  PFAC_status_t  PFAC_kernel_timeDriven_wrapper(
     if ( pos < bdy ){ \
         inputChar = s_char[pos]; \
         state = phi_s02s1[ inputChar ]; \
+        /*printf("States: %d", state);*/ \
         if ( TRAP_STATE != state ){ \
             if ( state <= num_finalState ){ \
                 match = state;\
@@ -302,6 +303,7 @@ __host__  PFAC_status_t  PFAC_kernel_timeDriven_wrapper(
             while ( pos < bdy ) { \
                 inputChar = s_char[pos]; \
                 state = *(d_PFAC_table + state*CHAR_SET + inputChar); \
+                /*printf(" -> %d", state);*/ \
                 if ( TRAP_STATE == state ){ break ;} \
                 if ( state <= num_finalState ){ \
                     match = state;\
@@ -309,6 +311,7 @@ __host__  PFAC_status_t  PFAC_kernel_timeDriven_wrapper(
                 pos = pos + 1;\
             }\
         }\
+        /*printf("\n");*/\
     }
 // end macro
 
@@ -461,15 +464,15 @@ __global__ void PFAC_kernel_timeDriven(int *d_PFAC_table, int *d_input_string, i
     if ( gbid < num_blocks_minus1 ){
         #pragma unroll
         for (int j = 0 ; j < 4 ; j++ ){
-            // PFAC_PRINTF("Match at %d: %d\n", start, match[j]);
+            PFAC_PRINTF("Match at %d: %d\n", start, match[j]);
             d_match_result[start] = match[j];
             start += BLOCKSIZE ;
         }
     }else{
         int j = 0 ;
         MANUAL_EXPAND_4( if (start>=input_size) return ; d_match_result[start] = match[j]; \
+            PFAC_PRINTF("Match at %d: %d\n", start, match[j]); \
         j++ ; start += BLOCKSIZE ; )
-            // PFAC_PRINTF("Match at %d: %d\n", start, match[j]);
     }
 }
 
@@ -482,8 +485,8 @@ __global__ void PFAC_kernel_count ( size_t size, int *d_match_result, int *d_num
 
     __shared__ int sdata[BLOCKSIZE];
 
-    if (tid == 0)
-    PFAC_PRINTF("\n%d\n", size);
+    // if (tid == 0)
+    // PFAC_PRINTF("\n%d\n", size);
 
     if ( id >= size )
     {

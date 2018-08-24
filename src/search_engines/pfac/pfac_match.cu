@@ -82,9 +82,11 @@ PFAC_status_t  PFAC_matchFromHost(
     cudaError_t cuda_status2 = cudaMalloc((void **) &d_matched_result,     input_size*sizeof(int) );
     cudaError_t cuda_status3 = cudaMalloc((void **) &d_num_matched, THREAD_BLOCK_SIZE*sizeof(int) );
     if ( (cudaSuccess != cuda_status1) || (cudaSuccess != cuda_status2) || (cudaSuccess != cuda_status3) ){
-          if ( NULL != d_input_string   ) { cudaFree(d_input_string); }
-          if ( NULL != d_matched_result ) { cudaFree(d_matched_result); }
-          if ( NULL != d_num_matched    ) { cudaFree(d_num_matched); }
+        if ( NULL != d_input_string   ) { cudaFree(d_input_string); }
+        if ( NULL != d_matched_result ) { cudaFree(d_matched_result); }
+        if ( NULL != d_num_matched    ) { cudaFree(d_num_matched); }
+        printf("n_hat: %d\n, input_size: %d\nTHREAD_BLOCK_SIZE: %d", n_hat, input_size, THREAD_BLOCK_SIZE);
+        printf("Status: %d %d %d\n", cuda_status1, cuda_status2, cuda_status3);
         return PFAC_STATUS_CUDA_ALLOC_FAILED;
     }
 

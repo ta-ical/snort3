@@ -1,3 +1,5 @@
+string(APPEND CMAKE_CUDA_FLAGS " -gencode arch=compute_50,code=sm_50")
+
 set (SEARCH_ENGINE_INCLUDES
     search_common.h
     search_tool.h
