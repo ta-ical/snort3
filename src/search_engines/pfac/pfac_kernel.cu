@@ -40,34 +40,21 @@
  */
  
 #include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <cassert>
-#include <cctype>
-#include <cstdarg>
 
 #include <cuda_runtime.h>
 
 #include "pfac.h"
+#include "pfac_texture.cuh"
 
-// #ifdef __cplusplus
-// extern "C" {
+
+extern texture < int, 1, cudaReadModeElementType > tex_PFAC_table;
  
 PFAC_status_t  PFAC_kernel_timeDriven_wrapper( 
     PFAC_handle_t handle, 
     char *d_input_string, 
     size_t input_size,
-    int *d_matched_result, 
-    int *d_num_matched) ;
-// } 
-// #endif // __cplusplus
+    int *d_matched_result ) ;
 
-texture < int, 1, cudaReadModeElementType > tex_PFAC_table;
-
-static __inline__  __device__ int tex_lookup(int state, int inputChar)
-{ 
-    return  tex1Dfetch(tex_PFAC_table, state*CHAR_SET + inputChar);
-}
 
 template <int BLOCKSIZE, int EXTRA_SIZE_TB, int TEXTURE_ON , int SMEM_ON >
 __global__ void PFAC_kernel_timeDriven(
@@ -82,6 +69,11 @@ __global__ void PFAC_kernel_timeDriven(
 
 template <int BLOCKSIZE>
 __global__ void PFAC_kernel_count ( size_t size, int *d_match_result, int *d_num_matched );
+
+static __inline__  __device__ int tex_lookup(int state, int inputChar)
+{ 
+    return  tex1Dfetch(tex_PFAC_table, state*CHAR_SET + inputChar);
+}
    
 //------------------- main function -----------------------
 
@@ -90,8 +82,7 @@ __host__  PFAC_status_t  PFAC_kernel_timeDriven_wrapper(
     PFAC_handle_t handle, 
     char *d_input_string, 
     size_t input_size,
-    int *d_matched_result,
-    int *d_num_matched )
+    int *d_matched_result )
 {
     cudaError_t cuda_status ;
     PFAC_status_t pfac_status = PFAC_STATUS_SUCCESS;
@@ -106,59 +97,9 @@ __host__  PFAC_status_t  PFAC_kernel_timeDriven_wrapper(
     *  there may be out-of-array bound of substring starting from 1023-th character.
     */ 
     bool smem_on = ((4*EXTRA_SIZE_PER_TB-1) >= handle->maxPatternLen) ;
-    
-#define PFAC_TEXTURE_ON 1
     bool texture_on = (PFAC_TEXTURE_ON == handle->textureMode );
 
     PFAC_PRINTF("texture on = %d\n", texture_on);
-	
-    textureReference *texRefTable ;
-    if ( texture_on ){
-        
-        // #### lock mutex, only one thread can bind texture
-        pfac_status = PFAC_tex_mutex_lock(handle);
-        if ( PFAC_STATUS_SUCCESS != pfac_status ){ 
-            return pfac_status ;
-        } 
-
-        cuda_status = cudaGetTextureReference( (const struct textureReference**)&texRefTable, &tex_PFAC_table );
-		if ( cudaSuccess != cuda_status ){
-            PFAC_PRINTF("Error: cannot get texture reference, %s\n", cudaGetErrorString(cuda_status) );
-            return PFAC_STATUS_CUDA_ALLOC_FAILED ;
-        }
-
-        cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<int>();
-        // set texture parameters
-        tex_PFAC_table.addressMode[0] = cudaAddressModeClamp;
-        tex_PFAC_table.addressMode[1] = cudaAddressModeClamp;
-        tex_PFAC_table.filterMode     = cudaFilterModePoint;
-        tex_PFAC_table.normalized     = 0;
-        
-        size_t offset ;
-        cuda_status = cudaBindTexture( &offset, (const struct textureReference*) texRefTable,
-            (const void*) handle->d_PFAC_table, (const struct cudaChannelFormatDesc*) &channelDesc, 
-            handle->sizeOfTableInBytes ) ;
-
-        // #### unlock mutex
-        pfac_status = PFAC_tex_mutex_unlock(handle);
-        if ( PFAC_STATUS_SUCCESS != pfac_status ){ 
-            return pfac_status ;
-        }
-
-        if ( cudaSuccess != cuda_status ){
-            PFAC_PRINTF("Error: cannot bind texture, %d bytes %s\n", handle->sizeOfTableInBytes, cudaGetErrorString(cuda_status) );
-            return PFAC_STATUS_CUDA_ALLOC_FAILED ;
-        }
-        
-       /*
-        *   we bind table to linear memory via cudaMalloc() which guaratees starting address of the table
-        *   is multiple of 256 byte, so offset must be zero.  
-        */
-        if ( 0 != offset ){
-            PFAC_PRINTF("Error: offset is not zero\n");
-            return PFAC_STATUS_INTERNAL_ERROR ;
-        }
-    }
 
     // n_hat = number of integers of input string
     int n_hat = (input_size + sizeof(int)-1)/sizeof(int) ;
@@ -231,20 +172,6 @@ __host__  PFAC_status_t  PFAC_kernel_timeDriven_wrapper(
         return PFAC_STATUS_INTERNAL_ERROR ;
     }
 
-    if ( texture_on ){
-        // #### lock mutex, only one thread can unbind texture
-        pfac_status = PFAC_tex_mutex_lock(handle);
-        if ( PFAC_STATUS_SUCCESS != pfac_status ){ 
-            return pfac_status ;
-        }
-        cudaUnbindTexture(texRefTable);
-        
-        // #### unlock mutex
-        pfac_status = PFAC_tex_mutex_unlock(handle);
-        if ( PFAC_STATUS_SUCCESS != pfac_status ){ 
-            return pfac_status ;
-        }
-    } 
     if ( cudaSuccess != cuda_status ){
         return PFAC_STATUS_INTERNAL_ERROR ;
     }
@@ -472,7 +399,7 @@ __global__ void PFAC_kernel_timeDriven(int *d_PFAC_table, int *d_input_string, i
         int j = 0 ;
         MANUAL_EXPAND_4( if (start>=input_size) return ; d_match_result[start] = match[j]; \
             PFAC_PRINTF("Match at %d: %d\n", start, match[j]); \
-        j++ ; start += BLOCKSIZE ; )
+            j++ ; start += BLOCKSIZE ; )
     }
 }
 

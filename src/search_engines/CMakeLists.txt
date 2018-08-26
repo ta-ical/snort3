@@ -47,6 +47,7 @@ set (PFAC_SOURCES
     pfac_api.cc
     pfac/pfac.cu
     pfac/pfac.h
+    pfac/pfac_texture.cuh
     pfac/pfac_match.cu
     pfac/pfac_match.cuh
     pfac/pfac_table.cu

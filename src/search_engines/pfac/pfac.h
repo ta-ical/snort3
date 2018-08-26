@@ -1,7 +1,7 @@
 #ifndef PFAC_H_
 #define PFAC_H_
 
-#include <stdio.h>
+#include <cstdio>
 #include <vector>
 #include <mutex>
 
@@ -28,6 +28,8 @@
 #if THREAD_BLOCK_SIZE != 256 
     #error THREAD_BLOCK_SIZE != 256 
 #endif
+
+#define MAX_BUFFER_SIZE  (1 << 15)
 
 
 using namespace std;
@@ -197,8 +199,7 @@ typedef PFAC_status_t (*PFAC_kernel_protoType)(
     PFAC_handle_t handle, 
     char *d_input_string, 
     size_t input_size,
-    int *d_matched_result,
-    int *d_num_matched ) ;
+    int *d_matched_result ) ;
 
 struct PFAC_STRUCT {
     // host
@@ -232,6 +233,8 @@ struct PFAC_STRUCT {
     // int2 *h_hashRowPtr ;
     // int2 *h_hashValPtr ;
     int  *h_tableOfInitialState ;
+    char *h_input_string;
+    int  *h_matched_result;
     int  hash_p ; // p = 2^m + 1 
     int  hash_m ;
 
@@ -241,6 +244,8 @@ struct PFAC_STRUCT {
     // int2 *d_hashRowPtr ;
     // int2 *d_hashValPtr ;
     int  *d_tableOfInitialState ; /* 256 transition function of initial state */
+    char *d_input_string;
+    int  *d_matched_result;
 
     size_t  numOfTableEntry ; 
     size_t  sizeOfTableEntry ; 

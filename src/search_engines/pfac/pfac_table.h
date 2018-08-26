@@ -5,10 +5,6 @@
 
 #include "pfac.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif   // __cplusplus
-
 PFAC_status_t PFAC_fillPatternTable( PFAC_handle_t pfac );
 PFAC_status_t PFAC_prepareTable( PFAC_handle_t pfac );
 
@@ -29,6 +25,8 @@ PFAC_status_t create_PFACTable_spaceDriven(const char** rowPtr, const int *patte
     vector< vector<TableEle> > &PFAC_table );
 
 PFAC_status_t  PFAC_bindTable( PFAC_handle_t handle );
+PFAC_status_t  PFAC_bindTexture(PFAC_handle_t handle);
+PFAC_status_t  PFAC_unbindTexture(PFAC_handle_t handle);
 PFAC_status_t  PFAC_create2DTable( PFAC_handle_t handle );
 
 /*
@@ -78,10 +76,6 @@ inline void correctTextureMode(PFAC_handle_t handle)
         }
     }
 }
-
-#ifdef __cplusplus
-}
-#endif   // __cplusplus
 
 
 #endif   // PFAC_TABLE_H_
