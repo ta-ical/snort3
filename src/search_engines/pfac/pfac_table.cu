@@ -151,8 +151,8 @@ PFAC_status_t PFAC_prepareTable ( PFAC_handle_t handle )
         }
     }
 
-    handle->initial_state  = handle->numOfPatterns + 1 ;
-    handle->numOfFinalStates = handle->numOfPatterns ;
+    handle->initial_state  = pattern_num ? pattern_num + 1 : -1;
+    handle->numOfFinalStates = pattern_num;
 
     // step 2: create PFAC table
     handle->table_compact = new vector< vector<TableEle> > ;
@@ -175,7 +175,7 @@ PFAC_status_t PFAC_prepareTable ( PFAC_handle_t handle )
     // compute numOfLeaves = number of leaf nodes
     // leaf node only appears in the final states
     handle->numOfLeaves = 0 ;
-    for(int i = 1 ; i <= handle->numOfPatterns ; i++ ){
+    for(int i = 1 ; i <= pattern_num; i++ ){
         // s0 is useless, so ignore s0
         if ( 0 == (*handle->table_compact)[i].size() ){
             handle->numOfLeaves ++ ;    
