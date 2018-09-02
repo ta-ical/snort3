@@ -175,16 +175,14 @@ PFAC_status_t  PFAC_create( PFAC_handle_t handle )
     PFAC_PRINTF("Available mem %u from %u\n", ava, total);
     cudaError_t cuda_status1 = cudaMalloc((void **) &(handle->d_input_string),     MAX_BUFFER_SIZE*sizeof(char) );
     cudaError_t cuda_status2 = cudaMalloc((void **) &(handle->d_matched_result),    MAX_BUFFER_SIZE*sizeof(int) );
-    cudaError_t cuda_status3 = cudaMallocHost((void**) &(handle->h_input_string),  MAX_BUFFER_SIZE*sizeof(char) );
-    cudaError_t cuda_status4 = cudaMallocHost((void**) &(handle->h_matched_result), MAX_BUFFER_SIZE*sizeof(int) );
-    int *h_matched_result = (int *) malloc ( MAX_BUFFER_SIZE * sizeof(int) );
-    int *h_num_matched = (int *) malloc ( THREAD_BLOCK_SIZE * sizeof(int) );
+    handle->h_input_string   = (char*) malloc(( MAX_BUFFER_SIZE*sizeof(char) );
+    handle->h_matched_result = (int*)  malloc(( MAX_BUFFER_SIZE*sizeof(int) );
     if ( (cudaSuccess != cuda_status1) || (cudaSuccess != cuda_status2) || 
          (cudaSuccess != cuda_status3) || (cudaSuccess != cuda_status4)) {
         if ( NULL != handle->d_input_string   ) { cudaFree(handle->d_input_string); }
         if ( NULL != handle->d_matched_result ) { cudaFree(handle->d_matched_result); }
-        if ( NULL != handle->h_input_string   ) { cudaFree(handle->h_input_string); }
-        if ( NULL != handle->h_matched_result ) { cudaFree(handle->h_matched_result); }
+        if ( NULL != handle->h_input_string   ) { free(handle->h_input_string); }
+        if ( NULL != handle->h_matched_result ) { free(handle->h_matched_result); }
         return PFAC_STATUS_CUDA_ALLOC_FAILED;
     }
 
