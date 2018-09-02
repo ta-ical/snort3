@@ -379,7 +379,7 @@ PFAC_status_t  PFAC_bindTable( PFAC_handle_t handle )
     // correctTextureMode(handle);
     
     bool texture_on = (PFAC_TEXTURE_ON == handle->textureMode );
-    if ( texture_on ){
+    if ( texture_on && handle->sizeOfTableInBytes > 0 ){
         PFAC_status = PFAC_bindTexture(handle);
         if ( PFAC_STATUS_SUCCESS != PFAC_status ){      
             PFAC_PRINTF("Error: cannot bind transistion table \n");

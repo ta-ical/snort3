@@ -180,8 +180,7 @@ PFAC_status_t  PFAC_create( PFAC_handle_t handle )
     int *h_matched_result = (int *) malloc ( MAX_BUFFER_SIZE * sizeof(int) );
     int *h_num_matched = (int *) malloc ( THREAD_BLOCK_SIZE * sizeof(int) );
     if ( (cudaSuccess != cuda_status1) || (cudaSuccess != cuda_status2) || 
-         (cudaSuccess != cuda_status3) || (cudaSuccess != cuda_status4)){
-        PFAC_PRINTF("cuda1 %d\ncuda 4 %d", cuda_status1, cuda_status4);
+         (cudaSuccess != cuda_status3) || (cudaSuccess != cuda_status4)) {
         if ( NULL != handle->d_input_string   ) { cudaFree(handle->d_input_string); }
         if ( NULL != handle->d_matched_result ) { cudaFree(handle->d_matched_result); }
         if ( NULL != handle->h_input_string   ) { cudaFree(handle->h_input_string); }
@@ -227,7 +226,7 @@ void pfacFree ( PFAC_STRUCT * pfac )
     PFAC_status_t status;
     
     bool texture_on = (PFAC_TEXTURE_ON == handle->textureMode );
-    if ( texture_on ){
+    if ( texture_on && handle->sizeOfTableInBytes > 0 ){
         status = PFAC_unbindTexture(handle);
         if ( status != PFAC_STATUS_SUCCESS )
         {
@@ -248,7 +247,7 @@ int pfacAddPattern (
     PFAC_STRUCT * p, const uint8_t* pat, unsigned n, bool nocase,
     bool negative, void* user )
 {
-    PFAC_PRINTF("Pat length: %u\n", n);
+    // PFAC_PRINTF("Pat length: %u\n", n);
 
     PFAC_PATTERN * plist;
     plist = (PFAC_PATTERN *) calloc (1, sizeof (PFAC_PATTERN));

@@ -29,7 +29,7 @@
     #error THREAD_BLOCK_SIZE != 256 
 #endif
 
-#define MAX_BUFFER_SIZE  (1 << 15)
+#define MAX_BUFFER_SIZE  (1 << 17)
 
 
 using namespace std;

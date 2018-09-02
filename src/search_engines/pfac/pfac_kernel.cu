@@ -99,7 +99,7 @@ __host__  PFAC_status_t  PFAC_kernel_timeDriven_wrapper(
     bool smem_on = ((4*EXTRA_SIZE_PER_TB-1) >= handle->maxPatternLen) ;
     bool texture_on = (PFAC_TEXTURE_ON == handle->textureMode );
 
-    PFAC_PRINTF("texture on = %d\n", texture_on);
+    // PFAC_PRINTF("texture on = %d\n", texture_on);
 
     // n_hat = number of integers of input string
     int n_hat = (input_size + sizeof(int)-1)/sizeof(int) ;
