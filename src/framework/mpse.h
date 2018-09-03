@@ -34,6 +34,8 @@
 // this is the current version of the api
 #define SEAPI_VERSION ((BASE_API_VERSION << 16) | 0)
 
+#define MPSE_BUFFER_SIZE (1 << 20)
+
 struct SnortConfig;
 struct MpseApi;
 struct ProfileStats;
@@ -45,7 +47,7 @@ public:
     static void reset_pattern_byte_count();
 
 public:
-    virtual ~Mpse() { }
+    ~Mpse();
 
     struct PatternDescriptor
     {
@@ -92,6 +94,10 @@ private:
     bool inc_global_counter;
     int verbose;
     const MpseApi* api;
+
+    uint8_t* buffer;
+    int loop_count;
+    int offset;
 };
 
 extern THREAD_LOCAL ProfileStats mpsePerfStats;
