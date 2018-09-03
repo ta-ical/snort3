@@ -21,6 +21,8 @@
 #include "config.h"
 #endif
 
+#include <string.h>
+
 #include "mpse.h"
 
 #include "profiler/profiler_defs.h"
@@ -42,6 +44,10 @@ Mpse::Mpse(const char* m, bool use_gc)
     method = m;
     inc_global_counter = use_gc;
     verbose = 0;
+
+    buffer = (uint8_t*) malloc ( MPSE_BUFFER_SIZE * sizeof( char ) );
+    loop_count = 0;
+    offset = 0;
 }
 
 int Mpse::search(
@@ -62,7 +68,25 @@ int Mpse::search_all(
     const unsigned char* T, int n, MpseMatch match,
     void* context, int* current_state)
 {
-    return _search(T, n, match, context, current_state);
+    loop_count++;
+    memcpy( buffer + offset, T, n * sizeof( char ) );
+    offset += n;
+
+    if (loop_count < 150) 
+    {
+        return 0;
+    }
+
+    int ret = _search(buffer, offset, match, context, current_state);
+    loop_count = 0;
+    offset = 0;
+
+    return ret;
+}
+
+Mpse::~Mpse()
+{
+    free(buffer);
 }
 
 uint64_t Mpse::get_pattern_byte_count()
